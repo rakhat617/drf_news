@@ -7,9 +7,13 @@ from drf_yasg import openapi
 
 from clients.serializers import RegisterSerializer, ActivateAccountSerializer
 
+# Простейшая вьюшка для регистрации 
+# Решил использовать обычный АПИвью, ибо нам тут только 1 метод нужен
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
+    # Сваггеры вот эти мне все ГПТшка писала, ибо мне лень ) 
+    # Я просто подправлял как мне нужно
     @swagger_auto_schema(
         operation_summary="Зарегистрироваться",
         operation_description="Регистрация нового пользователя",
@@ -25,7 +29,7 @@ class RegisterView(APIView):
             ),
             400: "Ошибка валидации"
         },
-        tags=["Аутентификация"]
+        tags=["Регистрация"]
     )
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -36,7 +40,8 @@ class RegisterView(APIView):
             status=status.HTTP_201_CREATED
         )
 
-
+# Простейшая вьюшка для актиации 
+# Тоже использую обычный АПИвью, ибо нам тут тоже только 1 метод нужен
 class ActivateAccountView(APIView):
     permission_classes = [AllowAny]
     
@@ -55,7 +60,7 @@ class ActivateAccountView(APIView):
             ),
             400: "Неверный код активации или ошибка валидации"
         },
-        tags=["Аутентификация"]
+        tags=["Регистрация"]
     )
     def post(self, request):
         serializer = ActivateAccountSerializer(data=request.data)

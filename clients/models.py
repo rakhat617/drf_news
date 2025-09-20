@@ -3,6 +3,8 @@ from django.db import models
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 
+# Это класс для управления созданием наших кастомных юзеров, так называемых клиентов
+# Я особо тут не парился, просто по минимуму сделал
 class ClientManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -20,6 +22,10 @@ class ClientManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
+# Это уже сама кастомная модель юзера
+# Тут я тоже особо ниче не делал, ибо по заданию нам только имейл нужен
+# И нужно использовать имейл для авторизации
+# Поэтому я и сделал его как юзернейм филд
 class Client(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(
         unique=True,
@@ -52,6 +58,12 @@ class Client(AbstractBaseUser, PermissionsMixin):
         verbose_name = "пользователь"
         verbose_name_plural = "пользователи"
 
+
+# Можно было не делать эту модель, а просто сделать поле в модели юзера
+# Но я решил, что более умно сделать именно так
+# Чтобы например можно было добавить сюда еще поля всякие, например срок действия и т.д
+# Или например чтобы можно было их легко удалять после активации 
+# (что я и реализовал здесь, хотя не уверен хорошо это или плохо)
 class ActivationCode(models.Model):
     client = models.OneToOneField(
         to=Client, 
@@ -64,10 +76,6 @@ class ActivationCode(models.Model):
         unique=True, 
         default=uuid.uuid4,
         verbose_name="код активации",
-        )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="дата создания"
         )
 
     def __str__(self):
