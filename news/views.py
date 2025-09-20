@@ -80,6 +80,8 @@ class ArticleUpdateView(APIView):
 # Сначала тоже сделал через АПИВью, но потом ГПТ мне подсказала
 # Сделать через ЛистАПИВью, и вынести фильтрацию в отдельный файл, как мы делали в соц сети. 
 # Но тут попроще конечно, можно было и не выносить по идее
+# А потом я вспомнил что нужно кешировать, и все равно пришлось метод вручную писать
+# Крч надо было АПИВью оставлять, ну уже пофиг 
 class ArticleListView(generics.ListAPIView):
     queryset = Article.objects.all().order_by("-published_at")
     serializer_class = ArticleSerializer
@@ -115,7 +117,22 @@ class ArticleListView(generics.ListAPIView):
         tags=["Новости"]
     )
     def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        # Создаем ключ кэша по параметрам запроса
+        cache_key = f"articles_list_{request.GET.urlencode()}"
+
+        # Проверяем его, мб уже он есть по такому запросу
+        cached_data = cache.get(cache_key)
+        
+        if cached_data:
+            return Response(cached_data, status=status.HTTP_200_OK)
+
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+
+        # Ну и собстна кладем результат в кеш на 10 минут
+        cache.set(cache_key, serializer.data, 60 * 10)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 # Вьюшка для избранного
